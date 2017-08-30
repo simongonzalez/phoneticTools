@@ -20,3 +20,8 @@ require(RCurl)
 
 df <- read.csv(text=getURL("https://raw.githubusercontent.com/simongonzalez/phoneticTools/master/sampleData.csv"))
 ```
+
+```{r, echo = F}
+df <- read.csv(text=getURL("https://raw.githubusercontent.com/simongonzalez/phoneticTools/master/sampleData.csv"))
+print(head(df))
+```
