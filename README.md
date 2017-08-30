@@ -9,19 +9,3 @@ Gerry Docherty (Griffith University - gerry.docherty@griffith.edu.au),
 Janet Fletcher (The University of Melbourne - j.fletcher@unimelb.edu.au),
 
 and Hywel Stoakes (The University of Melbourne - hstoakes@unimelb.edu.au).
-
-
-# Examples
-
-Load the sample file from Github into and R script
-
-```{r}
-require(RCurl)
-
-df <- read.csv(text=getURL("https://raw.githubusercontent.com/simongonzalez/phoneticTools/master/sampleData.csv"))
-```
-
-```{r, echo = F}
-df <- read.csv(text=getURL("https://raw.githubusercontent.com/simongonzalez/phoneticTools/master/sampleData.csv"))
-print(head(df))
-```
