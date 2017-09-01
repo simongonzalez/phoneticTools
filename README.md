@@ -28,7 +28,7 @@ The use fo these functionalities can be checked in  the following link:
 https://phoneapps.shinyapps.io/sociophonetic_tools/
 
 ## Stage
-The scripts are under constant updating and revision and fixed versions are uploaded. Also, more functions will populate further editions.
+The scripts are under constant updating and revision. Also, more functions will populate further versions.
 
 Should you have questions, comments and/or suggestions, please contact me:
 
