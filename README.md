@@ -1,6 +1,6 @@
 # socioPhoneticTools
 
-Selection of functions (under development) to facilitate data wrangling, visualisation and analysis of speech corpora. This is the result of an ARC-funded project under the Centre of Excelence for the Dynamics of Language (CoEDL), with the collaboration of:
+Selection of functions (under development) to facilitate data wrangling, visualisation and analysis of speech corpora. This is the result of an ARC-funded project under the Centre of Excellence for the Dynamics of Language (CoEDL) (Transdisciplinary and Innovation Grant), with the collaboration of:
 
 * Simon Gonzalez (The Australian National University - simon.gonzalez@anu.edu.au),
 
