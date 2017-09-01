@@ -11,7 +11,7 @@ Selection of functions (under development) to facilitate data wrangling, visuali
 * and Hywel Stoakes (The University of Melbourne - hstoakes@unimelb.edu.au).
 
 ## Use
-These functions are used in the Sydney Speaks project:
+These functions are actively used in the Sydney Speaks project:
 
 Link: http://www.dynamicsoflanguage.edu.au/sydney-speaks/
 
