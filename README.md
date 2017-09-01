@@ -1,4 +1,4 @@
-# phoneticTools
+# socioPhoneticTools
 
 Selection of functions (these functions are under development.) to facilitate data wrangling, visualisation and analysis of speech corpora. This is the result of an ARC-funded project under the Centre of Excelence for the Dynamics of Language (CoEDL), with the collaboration of:
 
