@@ -1,6 +1,6 @@
 # socioPhoneticTools
 
-Selection of functions (under development) to facilitate data wrangling, visualisation and analysis of speech corpora. This is the result of an ARC-funded project under the Centre of Excellence for the Dynamics of Language (CoEDL) (Transdisciplinary and Innovation Grant), with the collaboration of:
+Selection of functions to facilitate data wrangling, visualisation and analysis of speech corpora. This is the result of an ARC-funded project under the Centre of Excellence for the Dynamics of Language (CoEDL) (Transdisciplinary and Innovation Grant), with the collaboration of:
 
 * Simon Gonzalez (The Australian National University - simon.gonzalez@anu.edu.au),
 
@@ -28,7 +28,7 @@ The use fo these functionalities can be checked in  the following link:
 https://phoneapps.shinyapps.io/sociophonetic_tools/
 
 ## Stage
-The scripts are under strong development and these are not the final versions. These are under revision and final versions are to be uploaded.
+The scripts are under development and these are not the final versions. These are under revision and final versions are to be uploaded. Also, more functions will be uploaded.
 
 Should you have questions, comments and/or suggestions, please contact me:
 
