@@ -26,3 +26,10 @@ These tools enhance work in three main ways:
 The use fo these functionalities can be checked in  the following link:
 
 https://phoneapps.shinyapps.io/sociophonetic_tools/
+
+## Stage
+The scripts are under strong development and these are not the final versions. These are under revision and final versions are to be uploaded.
+
+Should you have questions, comments and/or suggestions, please contact me:
+
+simon.gonzalez@anu.edu.au
