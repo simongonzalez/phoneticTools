@@ -6,7 +6,7 @@ Selection of functions (under development) to facilitate data wrangling, visuali
 
 * Gerry Docherty (Griffith University - gerry.docherty@griffith.edu.au),
 
-* Janet Fletcher (The University of Melbourne - j.fletcher@unimelb.edu.au),
+* Janet Fletcher - CI (The University of Melbourne - j.fletcher@unimelb.edu.au),
 
 * and Hywel Stoakes (The University of Melbourne - hstoakes@unimelb.edu.au).
 
