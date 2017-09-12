@@ -27,11 +27,17 @@
 #' 
 #' 
 delete_columns <- function(data_set = NULL, delete_column = NULL){
-
-  delete_column = unlist(strsplit(delete_column, " "))
+  
+  #argument check====================================================================================================
+  
+  assertDataFrame(data_set)
+  
+  expect_character(delete_column, min.len = 1, max.len = ncol(data_set))
+  if(!testSubset(delete_column, colnames(data_set)))
+    stop("No columns in data_set with all or any of the specified labels in delete_column.")
 
   for(i in delete_column){
-    data_set[[i]] = NULL
+    data_set[[i]] <- NULL
   }
 
   return(data_set)

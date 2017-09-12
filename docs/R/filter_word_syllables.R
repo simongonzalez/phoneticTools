@@ -29,6 +29,17 @@
 #' 
 #' 
 filter_word_syllables <- function(data_set = NULL, column_header = NULL, number_of_syllables = NULL){
+  
+  #argument check====================================================================================================
+  
+  assertDataFrame(data_set)
+  
+  expect_character(column_header, len = 1)
+  if(!testSubset(column_header, colnames(data_set)))
+    stop("No columns in data_set with the specified label in column_header.")
+  
+  if(testNull(number_of_syllables))
+    stop("No values entered in number_of_syllables")
 
   #number of syllables======================================================================
   #=========================================================================================
@@ -38,39 +49,39 @@ filter_word_syllables <- function(data_set = NULL, column_header = NULL, number_
     if(is.character(data_set[[column_header]])){
       if(length(number_of_syllables) == 1){
         if(is.numeric(number_of_syllables)){
-          data_set = data_set[unlist(lapply(data_set[[column_header]], function(x) syllable_count(x)$syllables == number_of_syllables)),]
+          data_set <- data_set[unlist(lapply(data_set[[column_header]], function(x) syllable_count(x)$syllables == number_of_syllables)),]
         }else{
           if(number_of_syllables == 'mono'){
-            data_set = data_set[unlist(lapply(data_set[[column_header]], function(x) syllable_count(x)$syllables == 1)),]
+            data_set <- data_set[unlist(lapply(data_set[[column_header]], function(x) syllable_count(x)$syllables == 1)),]
           }else if(number_of_syllables == 'multi'){
-            data_set = data_set[unlist(lapply(data_set[[column_header]], function(x) syllable_count(x)$syllables != 1)),]
+            data_set <- data_set[unlist(lapply(data_set[[column_header]], function(x) syllable_count(x)$syllables != 1)),]
           }
         }
       }else{
         if(number_of_syllables[1] < 0){
-          data_set = data_set[unlist(lapply(data_set[[column_header]], function(x) syllable_count(x)$syllables >= (number_of_syllables[1] * -1) &
+          data_set <- data_set[unlist(lapply(data_set[[column_header]], function(x) syllable_count(x)$syllables >= (number_of_syllables[1] * -1) &
                                               syllable_count(x)$syllables <= number_of_syllables[2])),]
         }else{
-          data_set = data_set[unlist(lapply(data_set[[column_header]], function(x) syllable_count(x)$syllables == number_of_syllables[1] ||
+          data_set <- data_set[unlist(lapply(data_set[[column_header]], function(x) syllable_count(x)$syllables == number_of_syllables[1] ||
                                               syllable_count(x)$syllables == number_of_syllables[2])),]
         }
       }
     }else if(is.numeric(data_set[[column_header]])){
       if(length(number_of_syllables) == 1){
         if(is.numeric(number_of_syllables)){
-          data_set = data_set[data_set[[column_header]] == number_of_syllables,]
+          data_set <- data_set[data_set[[column_header]] == number_of_syllables,]
         }else{
           if(number_of_syllables == 'mono'){
-            data_set = data_set[data_set[[column_header]] == 1,]
+            data_set <- data_set[data_set[[column_header]] == 1,]
           }else if(number_of_syllables == 'multi'){
-            data_set = data_set[data_set[[column_header]] != 1,]
+            data_set <- data_set[data_set[[column_header]] != 1,]
           }
         }
       }else{
         if(number_of_syllables[1] < 0){
-          data_set = data_set[data_set[[column_header]] >= (number_of_syllables[1] * -1) & data_set[[column_header]] <= number_of_syllables[2],]
+          data_set <- data_set[data_set[[column_header]] >= (number_of_syllables[1] * -1) & data_set[[column_header]] <= number_of_syllables[2],]
         }else{
-          data_set = data_set[data_set[[column_header]] == number_of_syllables[1] || data_set[[column_header]] == number_of_syllables[2],]
+          data_set <- data_set[data_set[[column_header]] == number_of_syllables[1] || data_set[[column_header]] == number_of_syllables[2],]
         }
       }
     }

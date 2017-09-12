@@ -30,13 +30,30 @@
 #' 
 #' 
 rename_columns <- function(data_set = NULL, current_column = NULL, new_column = NULL){
+  
+  #argument check====================================================================================================
+  
+  assertDataFrame(data_set)
+  
+  expect_character(current_column, min.len = 1, max.len = length(colnames(data_set)))
+  if(!testSubset(current_column, colnames(data_set)))
+    stop("No columns in data_set with the specified label(s) in current_column.")
+  
+  expect_character(new_column, len = length(current_column), info = 'new_column and current_column must be of the same length')
+  
+  tmp_col_names <- names(data_set)
 
-  current_column = unlist(strsplit(current_column, " "))
+  existing_name <- tmp_col_names[which(tmp_col_names %in% new_column)]
+  
+  if(length(existing_name) != 0)
+    stop("At least one label entered in new_column already exists in the data_set.")
 
-  new_column = unlist(strsplit(new_column, " "))
+  current_column <- unlist(strsplit(current_column, " "))
+
+  new_column <- unlist(strsplit(new_column, " "))
 
   for(i in 1:length(current_column)){
-    colnames(data_set)[which(names(data_set) == current_column[i])] = new_column[i]
+    colnames(data_set)[which(names(data_set) == current_column[i])] <- new_column[i]
   }
 
   return(data_set)

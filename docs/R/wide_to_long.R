@@ -7,8 +7,8 @@
 #' Exports the same dataset with the new columns
 #' 
 #' @aliases wide_to_long
-#' @param data_frame dataset (data.frame) to convert from wide to long format
-#' @param set_columns character vector containing the header of the columns to
+#' @param data_set dataset (data.frame) to convert from wide to long format
+#' @param column_header character vector containing the header of the columns to
 #' be merged into one column
 #' @param new_column_names character vector containing the names of the new
 #' columns
@@ -28,56 +28,52 @@
 #' @export
 #' 
 #' long_data = wide_to_long(data_set = input_data,
-#'                          set_columns = 'F1.35. F1.65.,F2.35. F2.65.',
+#'                          column_header = 'F1.35. F1.65.,F2.35. F2.65.',
 #'                          new_column_names = 'F1s F2s')
 #' 
 #' 
 
-wide_to_long <- function(data_frame = NULL, set_columns = NULL, new_column_names = NULL,
-                        points_column = NULL, points_labels = NULL){
-
-  split_new_column_names = unlist(strsplit(new_column_names, " "))
-
-  split_set_columns = unlist(strsplit(set_columns, ","))
-
-  drop_names = c()
-
-  for(merge_i in 1:length(split_set_columns)){
-    tmp_merge_string = split_set_columns[merge_i]
-
-    split_set_columns_i = unlist(strsplit(tmp_merge_string, " "))
-
-    if(merge_i == 1){
-      tmp_new_columns = data.frame(matrix(nrow = (nrow(data_frame)*length(split_set_columns_i)),
-                                          ncol = length(split_set_columns)))
-      names(tmp_new_columns) = split_new_column_names
-
-      repeat_rows_number = length(split_set_columns_i)
-    }
-
-    tmp_matrix = matrix(nrow = nrow(data_frame), ncol = length(split_set_columns_i))
-
-    for(set_columns_i in 1:length(split_set_columns_i)){
-      tmp_matrix[,set_columns_i] = data_frame[[split_set_columns_i[set_columns_i]]]
-    }
-    tmp_new_columns[[split_new_column_names[merge_i]]] = as.vector(t(tmp_matrix))
-
-    drop_names = c(drop_names, split_set_columns_i)
+wide_to_long <- function(data_set = NULL, column_header = NULL, new_column = NULL, points_column = NULL){
+  
+  #argument check====================================================================================================
+  
+  assertDataFrame(data_set)
+  
+  expect_character(column_header, min.len = 1, max.len = length(colnames(data_set)))
+  if(!testSubset(column_header, colnames(data_set)))
+    stop("No columns in data_set with the specified label(s) in column_header.")
+  
+  tmp_col_names <- names(data_set)
+  
+  expect_character(new_column, len = 1)
+  existing_name <- tmp_col_names[which(tmp_col_names %in% new_column)]
+  if(length(existing_name) != 0)
+    stop("The label entered in new_column already exists in the data_set.")
+  
+  expect_character(points_column, len = 1)
+  existing_name <- tmp_col_names[which(tmp_col_names %in% points_column)]
+  if(length(existing_name) != 0)
+    stop("The label entered in points_column already exists in the data_set.")
+  
+  tmp_matrix <- matrix(nrow = nrow(data_set), ncol = length(column_header))
+  
+  for(column_header_i in 1:length(column_header)){
+    tmp_matrix[,column_header_i] <- data_set[[column_header[[column_header_i]]]]
   }
+  
+  tmp_vector <- as.vector(t(tmp_matrix))
+  
+  repeat_rows_number <- length(column_header)
 
   #delete the columns changed in the dataframe
-  df = data_frame[ , !(names(data_frame) %in% drop_names)]
+  data_set <- data_set[ , !(names(data_set) %in% column_header)]
 
-  new_d = df[rep(seq_len(nrow(df)), each=repeat_rows_number),]
+  data_set <- data_set[rep(seq_len(nrow(data_set)), each=repeat_rows_number),]
 
-  #add the new columns
-  for(i in split_new_column_names){
-    new_d[[i]] = tmp_new_columns[[i]]
-  }
+  #add the new column with values
+  data_set[[new_column]] <- tmp_vector
+  
+  data_set[[points_column]] <- column_header
 
-  split_points_labels = unlist(strsplit(points_labels, " "))
-
-  new_d[[points_column]] = split_points_labels
-
-  return(new_d)
+  return(data_set)
 }

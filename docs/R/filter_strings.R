@@ -36,21 +36,34 @@
 #' 
 filter_strings <- function(data_set = NULL, column_header = NULL,
                          orthography_type = NULL, orthography_filter = NULL){
+  
+  #argument check====================================================================================================
 
+  assertDataFrame(data_set)
+  
+  expect_character(column_header, len = 1)
+  if(!testSubset(column_header, colnames(data_set)))
+    stop("No columns in data_set with the specified label in column_header.")
+  
+  if(testNull(orthography_type))
+    stop("No values entered in orthography_type")
+  
+  if(testNull(orthography_filter))
+    stop("No values entered in orthography_filter")
   #orthography===============================================================
   #==========================================================================
   #==========================================================================
   if(!is.null(orthography_type)){
 
     if(orthography_type == 'contains'){
-      orthography_list = paste0('(', paste(orthography_filter, collapse = '|'), ')')
+      orthography_list <- paste0('(', paste(orthography_filter, collapse = '|'), ')')
     }else if(orthography_type == 'begins'){
-      orthography_list = paste0('^(', paste(orthography_filter, collapse = '|'), ')')
+      orthography_list <- paste0('^(', paste(orthography_filter, collapse = '|'), ')')
     }else if(orthography_type == 'ends'){
-      orthography_list = paste0('(', paste(orthography_filter, collapse = '|'), ')$')
+      orthography_list <- paste0('(', paste(orthography_filter, collapse = '|'), ')$')
     }
 
-    data_set = data_set[grepl(orthography_list, data_set[[column_header]]),]
+    data_set <- data_set[grepl(orthography_list, data_set[[column_header]]),]
 
     return(data_set)
   }

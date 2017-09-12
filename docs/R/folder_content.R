@@ -25,39 +25,50 @@
 #' 
 #' 
 folder_content <- function(folder, format_type = 'all_formats', separate_types = F){
+  
+  #argument check====================================================================================================
+  
+  expect_character(format_type, min.len = 1, max.len = 3)
+  if(!testSubset(format_type, c('all_formants', 'csv', 'tg', 'wav')))
+    stop("No set with the label specified in current_set. Accepted labels: all_formants, csv, tg, wav.")
+  
+  if (separate_types != FALSE & separate_types != TRUE)
+    stop("separate_types MUST be BOOLEAN - TRUE or FALSE")
+  
+
   #check if the folder exists
   if(length(list.files(paste0(folder)) > 0)){
     if(length(format_type) == 1 & length(which(format_type %in% c('all_formats'))) == 1){
-      format_type_length = 3
-      format_type_label = c('.wav', '.TextGrid', '.csv')
+      format_type_length <- 3
+      format_type_label <- c('.wav', '.TextGrid', '.csv')
       files_list = list.files(paste0(folder))
     }else if(length(format_type) == 1 & length(which(format_type %in% c('wav'))) == 1){
-      format_type_length = 1
-      format_type_label = '.wav'
+      format_type_length <- 1
+      format_type_label <- '.wav'
       files_list = list.files(paste0(folder), pattern = '.wav')
     }else if(length(format_type) == 1 & length(which(format_type %in% c('tg'))) == 1){
-      format_type_length = 1
-      format_type_label = '.TextGrid'
+      format_type_length <- 1
+      format_type_label <- '.TextGrid'
       files_list = list.files(paste0(folder), pattern = '.TextGrid')
     }else if(length(format_type) == 1 & length(which(format_type %in% c('csv'))) == 1){
-      format_type_length = 1
-      format_type_label = '.csv'
+      format_type_length <- 1
+      format_type_label <- '.csv'
       files_list = list.files(paste0(folder), pattern = '.csv')
     }else if(length(format_type) == 2 & length(which(format_type %in% c('wav', 'tg'))) == 2){
-      format_type_length = 2
-      format_type_label = c('.wav', '.TextGrid')
+      format_type_length <- 2
+      format_type_label <- c('.wav', '.TextGrid')
       files_list = list.files(paste0(folder), pattern = c('.wav|.TextGrid'))
     }else if(length(format_type) == 2 & length(which(format_type %in% c('wav', 'csv'))) == 2){
-      format_type_length = 2
-      format_type_label = c('.wav', '.csv')
+      format_type_length <- 2
+      format_type_label <- c('.wav', '.csv')
       files_list = list.files(paste0(folder), pattern = c('.wav|.csv'))
     }else if(length(format_type) == 2 & length(which(format_type %in% c('tg', 'csv'))) == 2){
-      format_type_length = 2
-      format_type_label = c('.TextGrid', '.csv')
+      format_type_length <- 2
+      format_type_label <- c('.TextGrid', '.csv')
       files_list = list.files(paste0(folder), pattern = c('.TextGrid|.csv'))
 
     }else{
-      files_list = 0
+      files_list <- 0
     }
 
     if(separate_types == F | format_type_length == 1){
@@ -65,20 +76,20 @@ folder_content <- function(folder, format_type = 'all_formats', separate_types =
       return(files_list)
     }else if(separate_types == T){
       if(format_type_length == 2){
-        separated_list = list(files_list[grep(format_type_label[1], files_list)],
+        separated_list <- list(files_list[grep(format_type_label[1], files_list)],
                               files_list[grep(format_type_label[2], files_list)])
-        names(separated_list) = c(gsub("\\.", "", format_type_label[1]),
+        names(separated_list) <- c(gsub("\\.", "", format_type_label[1]),
                                   gsub("\\.", "", format_type_label[2]))
       }else if(format_type_length == 3){
-        separated_list = list(files_list[grep(format_type_label[1], files_list)],
+        separated_list <- list(files_list[grep(format_type_label[1], files_list)],
                               files_list[grep(format_type_label[2], files_list)],
                               files_list[grep(format_type_label[3], files_list)])
-        names(separated_list) = c(gsub("\\.", "", format_type_label[1]),
+        names(separated_list) <- c(gsub("\\.", "", format_type_label[1]),
                                   gsub("\\.", "", format_type_label[2]),
                                   gsub("\\.", "", format_type_label[3]))
       }
 
-      separated_list$folder_path = paste0(folder, '/')
+      separated_list$folder_path <- paste0(folder, '/')
       return(separated_list)
 
     }else{

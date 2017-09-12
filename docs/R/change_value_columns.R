@@ -37,19 +37,78 @@
 change_value_columns <- function(data_set = NULL, column_header = NULL,
                                 old_values = NULL, new_values = NULL, new_column_header = NULL,
                                 delete_old_column = T){
+  
+  #argument check====================================================================================================
+  
+  assertDataFrame(data_set)
+  
+  expect_character(column_header, len = 1)
+  if(!testSubset(column_header, colnames(data_set)))
+    stop("No columns in data_set with the specified label in column_header.")
+  
+  if(testNull(old_values))
+    stop("No values entered in old_values")
+  
+  if(length(old_values) > length(unique(data_set[[column_header]])))
+    stop("The number of values to be changed is larger than the existing values.")
+  
+  if(testNull(new_values))
+    stop("No values entered in new_values")
+  
+  if(length(new_values) > length(old_values))
+    stop("The number of new values is larger than the existing values.")
+  
+  if(length(new_values) < length(old_values) & length(new_values) > 1)
+    stop("The number of old values is larger than new values.")
+  
+  if (!testNull(new_column_header)){
+    expect_character(new_column_header, len = 1)
+    if(testSubset(new_column_header, colnames(data_set)))
+      stop("The label provider in new_column_header already exists. Please provide another name.")
+  }
+    
+  if (testNull(new_column_header) & delete_old_column)
+    stop("If delete_old_column == TRUE, porvide new_column_header.")
+  
+  
+  unique_dataset_values <- as.character(sort(unique(data_set[[column_header]])))
+  old_values <- sort(old_values)
 
-  old_values = unlist(strsplit(old_values, " "))
-  new_values = unlist(strsplit(new_values, " "))
-
-  map_values = setNames(new_values, old_values)
-
-  data_set[[new_column_header]] = map_values[as.character(data_set[[column_header]])]
+  #if the input values are the same as the current values
+  if(identical(unique_dataset_values, old_values)){
+    if(length(old_values) == length(new_values)){
+      map_values <- setNames(new_values, old_values)
+    }else if(length(new_values) == 1 & length(old_values) > 1){
+      new_values <- rep(new_values, length(old_values))
+      map_values <- setNames(new_values, old_values)
+    }
+    
+  }else{
+    unique_dataset_values <- unique_dataset_values[!(unique_dataset_values %in% old_values)]
+    
+    if(length(old_values) == length(new_values)){
+      #extract the mapping values from the unique dataset values
+      new_values <- c(new_values, unique_dataset_values)
+      old_values <- c(old_values, unique_dataset_values)
+    }else if(length(new_values) == 1 & length(old_values) > 1){
+      #extract the mapping values from the unique dataset values
+      new_values <- c(rep(new_values, length(old_values)), unique_dataset_values)
+      old_values <- c(old_values, unique_dataset_values)
+    }
+    
+    map_values <- setNames(new_values, old_values)
+    
+  }
+  
+  if(is.null(new_column_header)){
+    data_set[[column_header]] <- map_values[as.character(data_set[[column_header]])]
+  }else{
+    data_set[[new_column_header]] <- map_values[as.character(data_set[[column_header]])]
+  }
 
   if(delete_old_column == T){
-    data_set[[column_header]] = NULL
+    data_set[[column_header]] <- NULL
   }
 
   return(data_set)
 }
-
-#print(head(change_value_columns(d, 'segment', 'i:', 'FLEECE', 'segment', F)))

@@ -41,9 +41,33 @@
 classify_words <- function(data_set = NULL, column_header = NULL,
                           POS_tag = T, POS_tag_long = F, POS_tag_simplified = F,
                           syllable_number = T, character_number = F){
+  
+  #argument check====================================================================================================
+  
+  assertDataFrame(data_set)
+  
+  expect_character(column_header, len = 1)
+  if(!testSubset(column_header, colnames(data_set)))
+    stop("No columns in data_set with the specified label in column_header.")
+  
+  if (POS_tag != FALSE & POS_tag != TRUE)
+    stop("POS_tag MUST be BOOLEAN - TRUE or FALSE")
+  
+  if (POS_tag_long != FALSE & POS_tag_long != TRUE)
+    stop("POS_tag_long MUST be BOOLEAN - TRUE or FALSE")
+  
+  if (POS_tag_simplified != FALSE & POS_tag_simplified != TRUE)
+    stop("POS_tag_simplified MUST be BOOLEAN - TRUE or FALSE")
+  
+  if (syllable_number != FALSE & syllable_number != TRUE)
+    stop("syllable_number MUST be BOOLEAN - TRUE or FALSE")
+  
+  if (character_number != FALSE & character_number != TRUE)
+    stop("character_number MUST be BOOLEAN - TRUE or FALSE")
+  
 
   if(POS_tag == T || POS_tag_long == T || POS_tag_simplified == T){
-    long_POS = c('Coordinating conjunction','Cardinal number','Determiner','Existential there',
+    long_POS <- c('Coordinating conjunction','Cardinal number','Determiner','Existential there',
                  'Foreign word','Preposition or subordinating conjunction','Adjective','Adjective, comparative','Adjective, superlative',
                  'List item marker','Modal','Noun, singular or mass','Noun, plural','Proper noun, singular',
                  'Proper noun, plural','Predeterminer','Possessive ending','Personal pronoun',
@@ -53,7 +77,7 @@ classify_words <- function(data_set = NULL, column_header = NULL,
                  'Verb, non-3rd person singular present','Verb, 3rd person singular present',
                  'Wh-determiner','Wh-pronoun','Possessive wh-pronoun','Wh-adverb')
 
-    long_POS_simplified = c('conjunction','number', 'determiner','there','word',
+    long_POS_simplified <- c('conjunction','number', 'determiner','there','word',
                             'preposition','adjective','adjective','adjective','listmarker',
                             'modal','noun','noun','noun','noun',
                             'predeterminer','possessive','name','possessivepronoun','adverb',
@@ -61,45 +85,43 @@ classify_words <- function(data_set = NULL, column_header = NULL,
                             'interjection','verb','verb','verb','verb',
                             'verb','verb', 'wh', 'wh','wh','wh')
 
-    short_POS = c('CC','CD','DT','EX','FW','IN','JJ','JJR','JJS','LS','MD','NN','NNS','NNP',
+    short_POS <- c('CC','CD','DT','EX','FW','IN','JJ','JJR','JJS','LS','MD','NN','NNS','NNP',
                   'NNPS','PDT','POS','PRP','PRP$','RB','RBR','RBS','RP','SYM','TO','UH','VB',
                   'VBD','VBG','VBN','VBP','VBZ','WDT','WP','WP$','WRB')
 
-    POS_mapping = setNames(as.character(long_POS), as.character(short_POS))
+    POS_mapping <- setNames(as.character(long_POS), as.character(short_POS))
 
-    POS_mapping_simplified = setNames(as.character(long_POS_simplified), as.character(short_POS))
+    POS_mapping_simplified <- setNames(as.character(long_POS_simplified), as.character(short_POS))
 
     #extract the column to be tagged
-    tmp_tags = data.frame(unique(data_set[[column_header]]),
+    tmp_tags <- data.frame(unique(data_set[[column_header]]),
                           as.character(pos(unique(data_set[[column_header]]), progress.bar = F)$POStagged$POStags))
 
-    names(tmp_tags) = c('words', 'tags')
+    names(tmp_tags) <- c('words', 'tags')
 
-    mapping = setNames(tmp_tags$tags, tmp_tags$words)
+    mapping <- setNames(tmp_tags$tags, tmp_tags$words)
 
-    POS_tags = as.character(mapping[as.character(data_set[[column_header]])])
-
-    #POS_tags = as.character(pos(data_set[[column_header]], progress.bar = F)$POStagged$POStags)
+    POS_tags <- as.character(mapping[as.character(data_set[[column_header]])])
 
     if(POS_tag == T){
-      data_set$POS_tag = POS_tags
+      data_set$POS_tag <- POS_tags
     }
 
     if(POS_tag_long == T){
-      data_set$POS_tag_long = POS_mapping[as.character(POS_tags)]
+      data_set$POS_tag_long <- POS_mapping[as.character(POS_tags)]
     }
 
     if(POS_tag_simplified == T){
-      data_set$POS_tag_simplified = POS_mapping_simplified[as.character(POS_tags)]
+      data_set$POS_tag_simplified <- POS_mapping_simplified[as.character(POS_tags)]
     }
   }
 
   if(syllable_number == T){
-    data_set$word_syllable_number = syllable_sum(data_set[[column_header]])
+    data_set$word_syllable_number <- syllable_sum(data_set[[column_header]])
   }
 
   if(character_number == T){
-    data_set$word_character_number = character_count(data_set[[column_header]])
+    data_set$word_character_number <- character_count(data_set[[column_header]])
   }
 
   return(data_set)

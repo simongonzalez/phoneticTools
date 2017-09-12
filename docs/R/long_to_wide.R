@@ -8,7 +8,7 @@
 #' 
 #' @aliases long_to_wide
 #' @param data_frame dataset (data.frame) to convert from long to wide format
-#' @param set_columns character vector containing the header of the columns to
+#' @param change_columns character vector containing the header of the columns to
 #' be split into different columns
 #' @param new_column_names character vector containing the names of the new
 #' columns
@@ -26,57 +26,61 @@
 #' @export
 #' 
 #' long_data = wide_to_long(data_set = input_data,
-#'                          set_columns = 'F1.35. F1.65.,F2.35. F2.65.',
-#'                          new_column_names = 'F1s F2s')
+#'                          change_columns = 'F1 F2', points_column = 'extraction_param')
 #' 
 #' 
-long_to_wide <- function(data_frame = NULL, set_columns = NULL, new_column_names = NULL,
-                        points_column = NULL){
+long_to_wide <- function(data_set = NULL, change_columns = NULL, points_column = NULL){
 
-  #headers of columns to be changed
-  split_set_columns = unlist(strsplit(set_columns, " "))
-
-  #headers for the new columns created
-  split_new_column_names = unlist(strsplit(new_column_names, " "))
-
+  #argument check====================================================================================================
+  
+  assertDataFrame(data_set)
+  
+  expect_character(change_columns, min.len = 1, max.len = length(colnames(data_set)))
+  if(!testSubset(change_columns, colnames(data_set)))
+    stop("No columns in data_set with the specified label(s) in change_columns.")
+  
+  expect_character(points_column, len = 1)
+  if(!testSubset(points_column, colnames(data_set)))
+    stop("No columns in data_set with the specified label in points_column.")
+  
   #stores the column headers to be deleted
-  drop_names = c(split_set_columns, points_column)
+  drop_names <- c(change_columns, points_column)
 
   #get the unique labels in the points column
-  unique_tmp_labels = unique(data_frame[[points_column]])
+  unique_tmp_labels <- unique(data_set[[points_column]])
 
   #creates the column headers of the new dataframe
-  new_column_header_merge = gsub(" ", '_', c(t(outer(split_new_column_names, unique_tmp_labels, paste))))
+  new_column_header_merge <- gsub(" ", '_', c(t(outer(change_columns, unique_tmp_labels, paste))))
 
   #counter for storing in the new wide dataframe
-  new_column_counter = 1
+  new_column_counter <- 1
 
   #iteration for every column
-  for(merge_i in 1:length(split_set_columns)){
+  for(merge_i in 1:length(change_columns)){
 
     #creates a dataframe that stores temporal values for the new columns
     if(merge_i == 1){
-      tmp_new_columns = data.frame(matrix(nrow = (nrow(data_frame)/length(unique_tmp_labels)),
+      tmp_new_columns <- data.frame(matrix(nrow = (nrow(data_set)/length(unique_tmp_labels)),
                                           ncol = length(new_column_header_merge)))
-      names(tmp_new_columns) = new_column_header_merge
+      names(tmp_new_columns) <- new_column_header_merge
     }
 
     #iterates to collect the subsetting values for each column
     for(point_i in unique_tmp_labels){
 
-      tmp_new_columns[[new_column_counter]] = data_frame[data_frame[[points_column]] == point_i, split_set_columns[merge_i]]
-      new_column_counter = new_column_counter + 1
+      tmp_new_columns[[new_column_counter]] <- data_set[data_set[[points_column]] == point_i, change_columns[merge_i]]
+      new_column_counter <- new_column_counter + 1
     }
 
   }
 
   #delete the columns of the current dataframe
-  df = data_frame[ , !(names(data_frame) %in% drop_names)]
+  data_set <- data_set[ , !(names(data_set) %in% drop_names)]
 
   #gets one value per point
-  df = df[seq(1, NROW(df), by = length(unique_tmp_labels)),]
+  data_set <- data_set[seq(1, NROW(data_set), by = length(unique_tmp_labels)),]
 
-  new_d = cbind(df, tmp_new_columns)
+  new_d <- cbind(data_set, tmp_new_columns)
 
   return(new_d)
 }

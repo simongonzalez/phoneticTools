@@ -34,106 +34,122 @@
 
 classify_segments <- function(data_set = NULL, column_header = NULL,
                           criteria = NULL, transcription_type = NULL){
+  
+  all_criteria_sets = c("affricate", "alveolar", "anterior", "approximant", "back", "bilabial", "central", "consonantal", "continuant", "coronal", "delayed_release", "dental", "diph", "distributed", "dorsal", "fricative", "front", "glottal", "high", "labial", "labiodental", "labiovelar", "lateral", "liquid", "long", "low", "mid", "monoth", "nasal", "palatal", "palatoalveolar", "phonetic_advancement", "phonetic_height", "phonetic_manner", "phonetic_place", "phonological_place", "plosive", "rhotic", "round", "sibilant", "sonorant", "stop", "tense", "velar", "voiced", "voiceless")
+  
+  #argument check====================================================================================================
+  
+  assertDataFrame(data_set)
+  
+  expect_character(column_header, len = 1)
+  if(!testSubset(column_header, colnames(data_set)))
+    stop("No columns in data_set with the specified label in column_header.")
+  
+  expect_character(criteria, min.len = 1, max.len = length(all_criteria_sets))
+  if(!testSubset(criteria, all_criteria_sets))
+    stop(paste0("No set with the label specified in current_set. Accepted labels: ", paste(all_criteria_sets, collapse = ', '), " ."))
+  
+  expect_character(transcription_type, len = 1)
+  if(!testSubset(transcription_type, c('celex', 'arpabet', 'disc', 'hex', 'ipa', 'maus', 'sampa', 'lexset')))
+    stop("No set with the label specified in transcription_type. Accepted labels: celex, arpabet, disc, hex, ipa, maus, sampa, lexset.")
 
   #phnological features
   #consonants
-  consonant_features = c('consonantal','sonorant','continuant','labial','bilabial',
+  consonant_features <- c('consonantal','sonorant','continuant','labial','bilabial',
                          'labiodental','anterior','coronal','distributed','dorsal',
                          'sibilant','nasal','lateral','delayed_release', 'voiced','voiceless',
                          'dental','alveolar','palatoalveolar','palatal','velar',
                          'labiovelar','glottal','stop', 'plosive','fricative',
                          'affricate','approximant','liquid','rhotic')
-  full_set_consonant_features = c('phonological_place', 'phonetic_place', 'phonetic_manner')
+  full_set_consonant_features <- c('phonological_place', 'phonetic_place', 'phonetic_manner')
   #vowels
-  vowel_features = c('high','low','front','back','long',
+  vowel_features <- c('high','low','front','back','long',
                      'round','mid','central','monoth','diph', 'tense')
 
-  full_set_vowel_features = c('phonetic_height', 'phonetic_advancement')
-
-  print(criteria)
+  full_set_vowel_features <- c('phonetic_height', 'phonetic_advancement')
 
   for(i in 1:length(criteria)){
 
-    tmp_criterion = criteria[i]
+    tmp_criterion <- criteria[i]
 
     if(length(which(tmp_criterion %in% full_set_consonant_features)) != 0 ||
        length(which(tmp_criterion %in% full_set_vowel_features)) != 0){
 
       if(length(which(tmp_criterion %in% full_set_consonant_features)) != 0){
 
-        tmp_segments = ipacorr(transcription_type)$consonants
+        tmp_segments <- get_symbols(transcription_type)$consonants
 
         #get all the segments of interest
         if(tmp_criterion == 'phonological_place'){
-          tmp_labels = c('labial','coronal','dorsal', 'glottal')
+          tmp_labels <- c('labial','coronal','dorsal', 'glottal')
         }
 
         if(tmp_criterion == 'phonetic_place'){
-          tmp_labels = c('bilabial','labiodental','dental', 'alveolar', 'palatoalveolar',
+          tmp_labels <- c('bilabial','labiodental','dental', 'alveolar', 'palatoalveolar',
                          'palatal', 'velar', 'labiovelar', 'glottal')
         }
 
         if(tmp_criterion == 'phonetic_manner'){
-          tmp_labels = c('stop', 'nasal', 'fricative', 'affricate', 'approximant', 'lateral',
+          tmp_labels <- c('stop', 'nasal', 'fricative', 'affricate', 'approximant', 'lateral',
                          'liquid', 'rhotic')
         }
 
-        data_set[[paste0(tmp_criterion, '_', column_header)]] = ""
+        data_set[[paste0(tmp_criterion, '_', column_header)]] <- ""
 
         for(tmp_i in tmp_labels){
           #find the segments that meet the criteria
-          tmp_segments_criteria = ipacorr(transcription_type, consonant_set = tmp_i)$consonants
+          tmp_segments_criteria <- get_symbols(transcription_type, consonant_set = tmp_i)$consonants
 
           if(length(tmp_segments_criteria) != 0){
-            data_set[data_set[[column_header]] %in% tmp_segments_criteria,c(paste0(tmp_criterion, '_', column_header))] = tmp_i
+            data_set[data_set[[column_header]] %in% tmp_segments_criteria,c(paste0(tmp_criterion, '_', column_header))] <- tmp_i
           }
         }
 
       }else if(length(which(tmp_criterion %in% full_set_vowel_features)) != 0){
-        tmp_segments = ipacorr(transcription_type)$vowels
+        tmp_segments <- get_symbols(transcription_type)$vowels
 
         #get all the segments of interest
 
         if(tmp_criterion == 'phonetic_height'){
-          tmp_labels = c('high', 'mid', 'low')
+          tmp_labels <- c('high', 'mid', 'low')
         }
 
         if(tmp_criterion == 'phonetic_advancement'){
-          tmp_labels = c('front', 'central', 'back')
+          tmp_labels <- c('front', 'central', 'back')
         }
 
-        data_set[[paste0(tmp_criterion, '_', column_header)]] = ""
+        data_set[[paste0(tmp_criterion, '_', column_header)]] <- ""
 
         for(tmp_i in tmp_labels){
           #find the segments that meet the criteria
-          tmp_segments_criteria = ipacorr(transcription_type, vowel_set = tmp_i)$vowels
+          tmp_segments_criteria <- get_symbols(transcription_type, vowel_set = tmp_i)$vowels
 
           if(length(tmp_segments_criteria) != 0){
-            data_set[data_set[[column_header]] %in% tmp_segments_criteria,c(paste0(tmp_criterion, '_', column_header))] = tmp_i
+            data_set[data_set[[column_header]] %in% tmp_segments_criteria,c(paste0(tmp_criterion, '_', column_header))] <- tmp_i
           }
         }
       }
     }else{
       if(length(which(tmp_criterion %in% consonant_features)) != 0){
         #get all the segments of interest
-        tmp_segments = ipacorr(transcription_type)$consonants
+        tmp_segments <- get_symbols(transcription_type)$consonants
         #find the segments that meet the criteria
-        tmp_segments_criteria = ipacorr(transcription_type, consonant_set = tmp_criterion)$consonants
+        tmp_segments_criteria <- get_symbols(transcription_type, consonant_set = tmp_criterion)$consonants
       }else if(length(which(tmp_criterion %in% vowel_features)) != 0){
         #get all the segments of interest
-        tmp_segments = ipacorr(transcription_type)$vowels
+        tmp_segments <- get_symbols(transcription_type)$vowels
         #find the segments that meet the criteria
-        tmp_segments_criteria = ipacorr(transcription_type, vowel_set = tmp_criterion)$vowels
+        tmp_segments_criteria <- get_symbols(transcription_type, vowel_set = tmp_criterion)$vowels
       }
 
       #identifies the result of the mapping
-      tmp_segments_result = ifelse(tmp_segments %in% tmp_segments_criteria, 'y', 'n')
+      tmp_segments_result <- ifelse(tmp_segments %in% tmp_segments_criteria, 'y', 'n')
 
       #creates a mapping list
-      segments_mapping = setNames(as.character(tmp_segments_result), as.character(tmp_segments))
+      segments_mapping <- setNames(as.character(tmp_segments_result), as.character(tmp_segments))
 
       #adds the results to the dataframe
-      data_set[[paste0(tmp_criterion, '_', column_header)]] = segments_mapping[as.character(data_set[[column_name]])]
+      data_set[[paste0(tmp_criterion, '_', column_header)]] <- segments_mapping[as.character(data_set[[column_header]])]
     }
 
   }
