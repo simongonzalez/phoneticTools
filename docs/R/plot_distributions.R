@@ -1,12 +1,15 @@
+library(checkmate)
 library(ggplot2)
 library(ggthemes)
 library(plotly)
 
-plot_distribution <- function(data_set = NULL, plot_type = 'bars', column_header = NULL, subset_column_header = NULL, subset_label = NULL, point_column = NULL, select_point = NULL, distribution_plot_single = 'merge', multicolor = FALSE, central_tendency = 'mean', stack_distributions = TRUE, x_trim = NULL, y_trim = NULL, plot_theme = 'theme_minimal', plot_interactive = TRUE, save_plot = FALSE, save_name = NULL){
+
+plot_distributions <- function(data_set = NULL, plot_type = 'bars', column_header = NULL, y_variable = NULL, subset_column_header = NULL, subset_label = NULL, point_column = NULL, select_point = NULL, distribution_plot_single = 'merge', multicolor = FALSE, central_tendency = 'mean', remove_outliers = T, stack_distributions = TRUE, x_trim = NULL, y_trim = NULL, plot_theme = 'theme_minimal', plot_interactive = TRUE, save_plot = FALSE, save_name = NULL, text_size = 15){
   
   # data_set = NULL input dataset
-  # plot_type = 'Bars' plot type, either bar plots and/or densities
+  # plot_type = 'bars' plot type, options: bars, densities, bars and densities, boxplots, violins
   # column_header = NULL column header of the values to be plotted
+  # y_variable = NULL, if boxplots or violin plots are selected, y must be numeric for the dependent variable
   # subset_column_header = NULL if the plots are to be subsetted, provided the subset column header
   # subset_label = NULL the labels in the subset column to be plotted
   # point_column = NULL if there is a poiint column, if the values in the column are divided in separate points, like in long datasets
@@ -14,6 +17,7 @@ plot_distribution <- function(data_set = NULL, plot_type = 'bars', column_header
   # distribution_plot_single = NULL if there are several categories/groups, the options on how to plot them: merge, split, grid
   # multicolor = FALSE, in case of categorical plots, if each category is plotted with only one color or multiple colors
   # central_tendency = NULL plotting the mean line and/or the median line: c('mean', 'median'), c('mean'), c('median')
+  # remove_outliers = T, if plot is a violin or a boxplot, checks whether outliers are included in the plot
   # stack_distributions = T if multiple variables are plotted in the same plot, gives the option of staking the variables
   # x_trim = NULL, manual x axis limits
   # y_trim = NULL, manual y axis limits
@@ -21,33 +25,51 @@ plot_distribution <- function(data_set = NULL, plot_type = 'bars', column_header
   # plot_interactive = TRUE, if the plot should be interactive using plotly, otherwise, it is a static plot using only ggplot
   # save_plot = FALSE, if the plot should be saved as a .png file
   # save_name = NULL, if left NULL, the plot is saved with the system date (Sys.Date()), otherwise, it is saved with the name provided
+  # text_size = 15, text size of the plot
   
   #argument check====================================================================================================
   assertDataFrame(data_set)
   
   expect_character(plot_type, min.len = 1, max.len = 2)
-  if(!testSubset(plot_type, c('bars', 'densities')))
+  if(!testSubset(plot_type, c('bars', 'densities', 'boxplots', 'violins')))
     stop("No plot with the label specified in plot_type. Accepted labels: bars, densities.")
   
   expect_character(column_header, len = 1)
   if(!testSubset(column_header, colnames(data_set)))
     stop("No columns in data_set with the specified label in column_header.")
   
+  if(plot_type %in% c('boxplots', 'violins')){
+    if(!class(data_set[[column_header]]) %in% c('character', 'factor'))
+      stop("Values selected in column_header must be categorical.")
+  }
+  
+  if(plot_type %in% c('boxplots', 'violins')){
+    expect_character(y_variable, len = 1)
+    if(!testSubset(y_variable, colnames(data_set)))
+      stop("No columns in data_set with the specified label in y_variable.")
+    
+    
+    if(!class(data_set[[y_variable]]) %in% c('integer', 'numeric'))
+      stop("Values selected in column_header must be numeric.")
+    
+    
+  }
+  
   if (!is.null(subset_column_header)){
     expect_character(subset_column_header, len = 1)
     if(!testSubset(subset_column_header, colnames(data_set)))
       stop("No columns in data_set with the specified label in subset_column_header.")
   }
-
+  
   if(!is.null(subset_column_header)){
     if (!is.null(subset_label)){
-    #get unique labels from the new column
-    check_unique_labels <- as.character(unique(data_set[[subset_column_header]]))
-    print(check_unique_labels)
-    
-    expect_character(subset_label, min.len = 1, max.len = length(check_unique_labels))
-    if(!testSubset(subset_label, check_unique_labels))
-      stop("At least one label in subset_label is not found in subset_label.")
+      #get unique labels from the new column
+      check_unique_labels <- as.character(unique(data_set[[subset_column_header]]))
+      print(check_unique_labels)
+      
+      expect_character(subset_label, min.len = 1, max.len = length(check_unique_labels))
+      if(!testSubset(subset_label, check_unique_labels))
+        stop("At least one label in subset_label is not found in subset_label.")
     }
     
     if(length(subset_label) > 1){
@@ -61,7 +83,7 @@ plot_distribution <- function(data_set = NULL, plot_type = 'bars', column_header
         if(!testSubset(distribution_plot_single, c('merge', 'split', 'equal', 'grid')))
           stop("No plot type with the label specified in cdistribution_plot_single. Accepted labels: merge, split, equal, grid.")
       }
-
+      
     }
   }
   
@@ -113,6 +135,15 @@ plot_distribution <- function(data_set = NULL, plot_type = 'bars', column_header
   #==============================================================================================================================
   #==============================================================================================================================
   #==============================================================================================================================
+  #function from http://www.sthda.com/english/wiki/ggplot2-violin-plot-quick-start-guide-r-software-and-data-visualization
+  # Function to produce summary statistics (mean and +/- sd)
+  data_summary <- function(x) {
+    m <- mean(x)
+    ymin <- m-sd(x)
+    ymax <- m+sd(x)
+    return(c(y=m,ymin=ymin,ymax=ymax))
+  }
+  
   
   #if all the data points are to be plotted, the point_column is empty
   #otherwise, a specific point is speficied
@@ -254,7 +285,7 @@ plot_distribution <- function(data_set = NULL, plot_type = 'bars', column_header
             
           }
           
-        #if user requests both Bars and Densities
+          #if user requests both Bars and Densities
         }else if(length(which(c('bars', 'densities') %in% plot_type)) != 0){
           fill_str = subset_column_header
           y_density = '..density..'
@@ -418,6 +449,8 @@ plot_distribution <- function(data_set = NULL, plot_type = 'bars', column_header
     
     ggp = ggp + get(plot_theme)()
     
+    ggp = ggp + theme(text = element_text(size = text_size))
+    
     ggp = ggp + theme(axis.text.x = element_text(angle = 90, hjust = 1))
     
     if(save_plot){
@@ -435,38 +468,89 @@ plot_distribution <- function(data_set = NULL, plot_type = 'bars', column_header
     }
     
   }else{
-    
-    
+
     #if a subset_column_header has been entered and an specified label inside on that column has been entered
     if(!is.null(subset_column_header)){
       if(subset_column_header != "" & !is.null(subset_label)){
         data_set <- data_set[data_set[[subset_column_header]] %in% subset_label,]
       }
     }
-
+    
     #sets a string with the subset_label. This is used for the plotting
     x = column_header
+    
+    if(plot_type %in% c('boxplots', 'violins')){
+      y = y_variable
+    }
     
     #if the subset is more than one category
     if(length(subset_label) > 1){
       
       #creates the basic plot, with the subset label(s)
-      ggp <- ggplot(data_set,aes_string(x=x))
+      if(plot_type %in% c('boxplots', 'violins')){
+        ggp <- ggplot(data_set, aes_string(x = x, y = y))
+      }else{
+        ggp <- ggplot(data_set,aes_string(x=x))
+      }
       
       if(distribution_plot_single == 'merge'){
-        facet_string = subset_column_header
-        
-        if(multicolor){
-          ggp = ggp + geom_bar(aes_string(fill = x), stat = "count", show.legend = T)
+
+        if(plot_type %in% c('boxplots', 'violins')){
+          if(plot_type == 'boxplots'){
+            
+            if(multicolor){
+              ggp = ggp + geom_boxplot(aes_string(fill = x))
+            }else{
+              ggp = ggp + geom_boxplot(aes(fill="#0072B2"))
+            }
+
+          }else if(plot_type == 'violins'){
+            
+            if(multicolor){
+              ggp = ggp + geom_violin(aes_string(fill = x))
+            }else{
+              ggp = ggp + geom_violin(aes(fill="#0072B2"))
+            }
+            
+            ggp <- ggp + stat_summary(fun.data=data_summary)
+          }
+          
+          if(remove_outliers){
+            ggp <- ggp + scale_y_continuous(limits = quantile(data_set[[y]], c(0.1, 0.9)))
+          }
+          
         }else{
-          ggp = ggp + geom_bar(stat = "count", fill="#0072B2", colour =  "#0072B2")
+          
+          if(multicolor){
+            ggp = ggp + geom_bar(aes_string(fill = x), stat = "count", show.legend = T)
+          }else{
+            ggp = ggp + geom_bar(stat = "count", fill="#0072B2", colour =  "#0072B2")
+          }
         }
 
         ggp = ggp + theme(legend.title = element_blank())
+
       }else if(distribution_plot_single == 'split'){
-        fill_str = subset_column_header
-        ggp = ggp +  geom_bar(stat = "count", aes_string(fill = fill_str))
         
+        factor_str = subset_column_header
+
+        if(plot_type %in% c('boxplots', 'violins')){
+
+          if(plot_type == 'boxplots'){
+            ggp = ggp + geom_boxplot(aes(fill = factor(data_set[[factor_str]])    ))
+          }else if(plot_type == 'violins'){
+            ggp = ggp + geom_violin(aes(fill = factor(data_set[[factor_str]])    ))
+            ggp <- ggp + stat_summary(fun.data=data_summary)
+          }
+          
+          if(remove_outliers){
+            ggp <- ggp + scale_y_continuous(limits = quantile(data_set[[y]], c(0.1, 0.9)))
+          }
+          
+        }else{
+          ggp = ggp +  geom_bar(stat = "count", aes_string(fill = fill_str))
+        }
+
       }else if(distribution_plot_single == 'equal'){
         fill_str = subset_column_header
         ggp = ggp +  geom_bar(stat = "count", aes_string(fill = fill_str), position = 'fill')
@@ -474,26 +558,79 @@ plot_distribution <- function(data_set = NULL, plot_type = 'bars', column_header
         
         facet_string = subset_column_header
         
-        if(multicolor){
-          ggp = ggp + geom_bar(aes_string(fill = x), stat = "count", show.legend = T)
+        if(plot_type %in% c('boxplots', 'violins')){
+
+          if(plot_type == 'boxplots'){
+            
+            if(multicolor){
+              ggp = ggp + geom_boxplot(aes_string(fill = x))
+            }else{
+              ggp = ggp + geom_boxplot(aes(fill="#0072B2"))
+            }
+          }else if(plot_type == 'violins'){
+            
+            if(multicolor){
+              ggp = ggp + geom_violin(aes_string(fill = x))
+            }else{
+              ggp = ggp + geom_violin(aes(fill="#0072B2"))
+            }
+            
+            ggp <- ggp + stat_summary(fun.data=data_summary)
+            
+          }
+          
+          if(remove_outliers){
+            ggp <- ggp + scale_y_continuous(limits = quantile(data_set[[y]], c(0.1, 0.9)))
+          }
+          
         }else{
-          ggp = ggp + geom_bar(stat = "count", fill="#0072B2", colour =  "#0072B2")
+          
+          if(multicolor){
+            ggp = ggp + geom_bar(aes_string(fill = x), stat = "count", show.legend = T)
+          }else{
+            ggp = ggp + geom_bar(stat = "count", fill="#0072B2", colour =  "#0072B2")
+          }
+ 
         }
-        
-        
         
         ggp = ggp + facet_wrap(facet_string)
         ggp = ggp + theme(legend.title = element_blank())
+ 
       }
     }else{
       #if the subset is  one category
       
-      if(multicolor){
-        ggp <- ggplot(data_set,aes_string(x=x)) + geom_bar(aes_string(fill = x), stat = "count")
+      if(plot_type %in% c('boxplots', 'violins')){
+        if(plot_type == 'boxplots'){
+          
+          if(multicolor){
+            ggp <- ggplot(data_set, aes_string(x = x, y = y)) + geom_boxplot(aes_string(fill = x))
+          }else{
+            ggp <- ggplot(data_set, aes_string(x = x, y = y)) + geom_boxplot(fill = "#0072B2")
+          }
+        }else if(plot_type == 'violins'){
+          
+          
+          if(multicolor){
+            ggp <- ggplot(data_set, aes_string(x = x, y = y)) + geom_violin(aes_string(fill = x))
+          }else{
+            ggp <- ggplot(data_set, aes_string(x = x, y = y)) + geom_violin(fill = "#0072B2")
+          }
+          
+          ggp <- ggp + stat_summary(fun.data=data_summary)
+        }
+        
+        if(remove_outliers){
+          ggp <- ggp + scale_y_continuous(limits = quantile(data_set[[y]], c(0.1, 0.9)))
+        }
+        
       }else{
-        ggp <- ggplot(data_set,aes_string(x=x)) + geom_bar(stat = "count", fill="#0072B2", colour =  "#0072B2")
+        if(multicolor){
+          ggp <- ggplot(data_set,aes_string(x=x)) + geom_bar(aes_string(fill = x), stat = "count")
+        }else{
+          ggp <- ggplot(data_set,aes_string(x=x)) + geom_bar(stat = "count", fill="#0072B2", colour =  "#0072B2")
+        }
       }
-      
     }
     
     if (!is.null(x_trim)){
@@ -503,8 +640,10 @@ plot_distribution <- function(data_set = NULL, plot_type = 'bars', column_header
     if (!is.null(y_trim)){
       ggp = ggp + scale_y_continuous(limits = y_trim)
     }
-
+    
     ggp = ggp + get(plot_theme)()
+    
+    ggp = ggp + theme(text = element_text(size = text_size))
     
     ggp = ggp + theme(axis.text.x = element_text(angle = 90, hjust = 1))
     
@@ -521,11 +660,10 @@ plot_distribution <- function(data_set = NULL, plot_type = 'bars', column_header
     }else{
       ggp
     }
-
  
   }
   
 }
-  
+
 
 
